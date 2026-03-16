@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCC MDR Rate Lookup System</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --accent: #2563eb;
+            --bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            border-color: var(--accent);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background: #f1f5f9;
+            color: #475569;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+        }
+
+        .mcc-tag {
+            font-weight: bold;
+            color: var(--accent);
+            background: #eff6ff;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .rate {
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+        .std-rate { background: #dcfce7; color: #166534; }
+        .hod-rate { background: #fee2e2; color: #991b1b; }
+        .cs-rate { background: #fef9c3; color: #854d0e; }
+
+        tr:hover { background: #f8fafc; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>MCC & MDR Rate Search System</h2>
+    </div>
+
+    <input type="text" id="searchInput" class="search-box" placeholder="Search by Code, Name or Business Type...">
+
+    <div class="table-wrapper">
+        <table id="mccTable">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>MCC Name & Description</th>
+                    <th>Standard</th>
+                    <th>HOD</th>
+                    <th>Cost Sharing</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const rawData = [
+    { c: "1520", n: "GENERAL CONTRACTORS-RESIDENTIAL BUILDINGS", add: "Consturction service like Naing Group/ Father Land", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "4214", n: "FREIGHT CARRIER TRUCKING-LCL-LNG DIST MVG- STORAGE", add: "Delivery Service", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "4121", n: "LIMOUSINES AND TAXICABS", add: "Taxi and Car Rental Service/ Ambulance", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "4812", n: "TELECOMMUNICATION EQUIPMENT INCL TELEPHONE SALES", add: "MOBLIE SALES & REPAIR/ Perpaid card sales and other telecommunication relate/ DIGITAL GOODS MULTI CATEGORY/ Key-entry Telecom Merchant providing single local and long distance phone calls using a central access number in a non face-toface environment using key entry", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5045", n: "COMPUTERS COMPUTER PERIPHERAL EQUIPMENT SOFTWARE", add: "Products for sale may include computer monitors, disk drives, cables, keyboards,printers, scanners, modems, computer programs, and related accessories and equipment.", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5047", n: "DENTAL-LAB-MED-OPHTHALMIC HOSP EQUIP + SUPPLIES", add: "laboratory, surgical, orthopedic, patient monitoring, and other hospital equipment, and of wheel chairs,medical instruments, industrial safety devices, hospital beds, and other hospital supplies.", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5111", n: "STATIONERY-OFFICE SUPPLIES-PRINTING + WRITING PAP.", add: "Products for sale may include fire extinguishers, firearms, gas lighting fixtures, monuments and grave markers, prerecorded cassettes, cordwood, rough timber products, wood chips, non electric signs, musical instruments, and luggage.", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5200", n: "HOME SUPPLY WAREHOUSE STORES", add: "အိမ်ေဆာက်ပစ္စည်းေရာင်းဝယ်ေရး (PAINTS VARNISHES AND SUPPLIES/FLOOR COVERING STORES/ FIREPLACE FIREPLACE SCREENS + ACCESSORIES STORES/MISCELLANEOUS HOUSE FURNISHING SPECIALTY SHOPS/HOUSEHOLD APPLIANCE STORES)", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5261", n: "LAWN AND GARDEN SUPPLY STORES", add: "sell nursery stock, trees, shrubs, potted plants, seeds,bulbs, mulches, soil conditioners, fertilizers, pesticides, garden tools,and other garden supplies.", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5311", n: "DEPARTMENT STORES", add: "Ocean/Market Place/ City Mart/ Capital/ Orange/ G&G", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5411", n: "GROCERY STORES SUPERMARKETS", add: "retail food stores", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5511", n: "CAR AND TRUCK DEALERS (NEW USED) SALES, SERVICE, REPAIRS SPARE PARTS AND LEASING", add: "New/ Used Car and Truck dealers", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5541", n: "SERVICE STATIONS", add: "SERVICE STATIONS (WITH OR WITHOUT ANCILLARY SERVICES)", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5651", n: "FAMILY CLOTHING STORES", add: "Fashion Shop (Clothes)", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5691", n: "MEN’S AND WOMEN’S CLOTHING STORES", add: "Fashion Shop (Clothes)", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5722", n: "HOUSEHOLD APPLIANCE STORES", add: "Electornic Shop like (K-World/ Seiko/ Sony)", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5732", n: "ELECTRONICS SALES", add: "Electronic Shop (Seiko/Sony/ Samsung)", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5812", n: "EATING PLACES, RESTAURANTS", add: "Dining restaurants", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5813", n: "DRINKING PLACES (ALCOHOLIC BEVERAGES)-BARS, TAVERNS, NIGHTCLUBS AND DISCOTHEQUES", add: "Bars, Nightclubs", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5814", n: "FAST FOOD RESTAURANTS", add: "KFC/ Lotteria/ Burger King/ Marry Brown", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5912", n: "DRUG STORES, PHARMACIES", add: "Pharmacy", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5941", n: "SPORTING GOODS STORES", add: "Gyn & Sports Accessory shops", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5944", n: "JEWELRY, WATCHES, SILVERWARE, AND PRECIOUS STONES", add: "Gold & Dimond Shop like Sein Nan Daw/ Shwe Nan Daw/ Aung Thamardi", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5947", n: "CARD, GIFT, NOVELTY, AND SOUVENIR SHOPS", add: "Miniso/ Mumuso", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5977", n: "COSMETIC STORES", add: "Cosmetic & Makeup Shop", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "5999", n: "MISCELLANEOUS AND SPECIALTY RETAIL STORES", add: "Small Shop (Convenience Stores, small restaurants)", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "6011", n: "AUTOMATED CASH DISBURSEMENTS-CUSTOMER FINANCIAL INSTITUTION", add: "Financial Service", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "6300", n: "INSURANCE SALES, UNDERWRITING, AND PREMIUMS", add: "Insurance company", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "7011", n: "HOTELS, MOTELS, RESORTS, CENTRAL RESERVATION SERVICES (NOT ELSEWHERE CLASSIFIED)", add: "Hotels", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "7230", n: "BEAUTY AND BARBER SHOPS", add: "Saloon/ Hair cut/ Spa & Massage", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "7311", n: "ADVERTISING SERVICES", add: "Advertisment Agency", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "7512", n: "AUTOMOBILE RENTAL AGENCY-NOT ELSEWHERE CLASSIFIED", add: "Car Rental Agency", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "7832", n: "MOTION PICTURE THEATERS", add: "Cinema/ Theatre/ Amusement Park", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "7997", n: "CLUBS-MEMBERSHIP (ATHLETIC, RECREATIONAL, SPORTS), COUNTRY CLUBS, AND PRIVATE GOLF COURSES", add: "Athletic club/ Golf Club/ Gym & Fitness", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "8011", n: "DOCTORS AND PHYSICIANS-NOT ELSEWHERE CLASSIFIED", add: "Clinics", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "8099", n: "MEDICAL SERVICES AND HEALTH PRACTITIONERS-NOT ELSEWHERE CLASSIFIED", add: "Clinic & Medical Service", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "8220", n: "COLLEGES, UNIVERSITIES, PROFESSIONAL SCHOOLS, AND JUNIOR COLLEGES", add: "University/ Academy/ Private School", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "8299", n: "SCHOOLS AND EDUCATIONAL SERVICES-NOT ELSEWHERE CLASSIFIED", add: "Vocational & Private School", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "8999", n: "PROFESSIONAL SERVICES-NOT ELSEWHERE CLASSIFIED", add: "Real Estate agency/ Engineering & Architecture", type: "F&B, Malls, Supermarket, Retail, Telco, Bill Payment, ALL OTHERS", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "4411", n: "CRUISE LINES", add: "Cruse lines/ Ferry boat/ Hot air balloon service", type: "Travel & Airlines", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "4511", n: "AIR CARRIERS, AIRLINES-NOT ELSEWHERE CLASSIFIED", add: "Local Airlines/ International Airlines", type: "Travel & Airlines", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "4722", n: "TRAVEL AGENCIES AND TOUR OPERATORS", add: "Tourism agency", type: "Travel & Airlines", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "8062", n: "HOSPITALS", add: "Hospital Fees", type: "Government (Bill Payment, Education, Health, Parking Fees) Fixed Fee of 300MMK for transaction sizes 100,000MMK and below.", s: 0.004, h: 0.003, cs: 0.0027 },
+    { c: "8211", n: "SCHOOLS, ELEMENTARY AND SECONDARY", add: "School & Tuition Fees", type: "Government (Bill Payment, Education, Health, Parking Fees) Fixed Fee of 300MMK for transaction sizes 100,000MMK and below.", s: 0.004, h: 0.003, cs: 0.0027 },
+    { c: "4900", n: "ELECTRIC, GAS, SANITARY AND WATER UTILITIES", add: "Government relate services (Electric bill/ Water bill)", type: "Government (Bill Payment, Education, Health, Parking Fees) Fixed Fee of 300MMK for transaction sizes 100,000MMK and below.", s: 0.004, h: 0.003, cs: 0.0027 },
+    { c: "9399", n: "Government Services—not elsewhere classified", add: "Government relate services", type: "Government (Bill Payment, Education, Health, Parking Fees) Fixed Fee of 300MMK for transaction sizes 100,000MMK and below.", s: 0.004, h: 0.003, cs: 0.0027 },
+    { c: "9311", n: "Tax Payments", add: "Local, state, and federal entities that engage in financial administration and taxation, including the collection of taxes and penalties and the custody and disbursement of funds.", type: "Government (Bill Payment, Education, Health, Parking Fees) Fixed Fee of 300MMK for transaction sizes 100,000MMK and below.", s: 0.004, h: 0.003, cs: 0.0027 },
+    { c: "4131", n: "Public Transportation", add: "Bus Line & Passanger railway/ BRIDGE AND ROAD FEES TOLLS", type: "Government (Bill Payment, Education, Health, Parking Fees) Fixed Fee of 300MMK for transaction sizes 100,000MMK and below.", s: 0.004, h: 0.003, cs: 0.0027 },
+    { c: "5499", n: "Miscellaneous Food Stores - Convenience Stores, Markets, Specialty Stores, & Vending Machines", add: "Wet Market, Street Food Vendors,Mobile trucks, Small Merchants, mom and- pop stores, Uni Canteen (This MCC should not more than the limit that DPS will notified Fis.", type: "Small Business Owners (Wet Market, Mobile Trucks, Uni-Canteen, Grocery store)", s: 0, h: 0, cs: 0 },
+    { c: "5399", n: "MISCELLANEOUS GENERAL MERCHANDISE - SME / MSME Merchants", add: "Any Businesses(stores or eating places) consider SME category MCC should not more than the limit that DPS will notified FIs.", type: "Small Business Owners (Wet Market, Mobile Trucks, Uni-Canteen, Grocery store)", s: 0, h: 0, cs: 0 },
+    { c: "5542", n: "Fuels Dispenser, Automated", add: "EV charging / CNG/ Petrol", type: "Fuel", s: 0.005, h: 0.0035, cs: 0.0032 },
+    { c: "8398", n: "ORGANIZATIONS RELIGIOUS", add: "Organizations, Charitable (non-political) and Social Service", type: "Charity", s: 0.004, h: 0.003, cs: 0.0027 }
+];
+
+    const formatPercent = (val) => {
+        if (val === 0) return "0%";
+        return (val * 100).toFixed(2).replace(/\.00$/, '') + "%";
+    };
+
+    function displayData(data) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = "";
+        data.forEach(item => {
+            const tr = `<tr>
+                <td><span class="mcc-tag">${item.c}</span></td>
+                <td>
+                    <strong>${item.n}</strong><br>
+                    <small style="color:#64748b">${item.add}</small>
+                    <div style="font-size:12px; color:#94a3b8; margin-top:4px;">Type: ${item.type}</div>
+                </td>
+                <td><span class="rate std-rate">${formatPercent(item.s)}</span></td>
+                <td><span class="rate hod-rate">${item.h === 0 ? '-' : formatPercent(item.h)}</span></td>
+                <td><span class="rate cs-rate">${formatPercent(item.cs)}</span></td>
+            </tr>`;
+            tbody.innerHTML += tr;
+        });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = rawData.filter(i => 
+            i.c.includes(term) || 
+            i.n.toLowerCase().includes(term) || 
+            i.add.toLowerCase().includes(term) ||
+            i.type.toLowerCase().includes(term)
+        );
+        displayData(filtered);
+    });
+
+    displayData(rawData);
+</script>
+
+</body>
+</html>
